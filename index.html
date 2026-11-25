@@ -5,112 +5,161 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#2b2b2b">
+<meta name="theme-color" content="#222222">
 <title>MagSafe Mobile Data Extractor</title>
 <style>
   :root{
-    --bg:#2b2b2b; --fg:#e0e0e0; --sub:#9a9a9a;
-    --btn:#0078D7; --btn-active:#005A9E; --btn-disabled:#3a3a3a;
-    --field:#1f1f1f; --log-bg:#1a1a1a; --log-fg:#a8e6a1; --border:#3d3d3d;
+    --bg:#222222; 
+    --fg:#ffffff;
+    --sub:#9a9a9a;
+    --btn:#0078D7;
+    --btn-active:#005A9E;
+    --btn-disabled:#3a3a3a;
+    --field:#1c1c1c;
+    --log-bg:#111111;
+    --log-fg:#4ade80; 
+    --border:#3d3d3d;
     --accent:#33c3ff;
   }
+  
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;padding:0;height:100%}
-  body{
-    background:var(--bg); color:var(--fg);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-    display:flex; flex-direction:column; height:100dvh; /* Используем 100dvh для корректной высоты в Safari */
-    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-    overflow:hidden;
+  
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: var(--bg); color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
   }
-  .screen{display:none; flex:1; padding:20px; min-height:0; flex-direction:column}
-  .screen.active{display:flex}
-
-  /* ---------- Загрузочный экран ---------- */
-  #screen-loader{
-    align-items:center; justify-content:center; text-align:center;
-    background:radial-gradient(circle at 50% 35%, #323232 0%, #232323 70%, #1c1c1c 100%);
-  }
-  #screen-loader .brand{
-    font-size:13px; letter-spacing:2px; color:var(--accent);
-    text-transform:uppercase; margin-bottom:18px; opacity:.85;
-  }
-  #screen-loader h1{
-    font-size:19px; margin:0 0 26px; font-weight:600; letter-spacing:.3px;
-  }
-  .loader-svg{width:220px; height:120px; margin-bottom:22px}
-  .loader-svg .packet{animation:packetMove 1.6s linear infinite}
-  .loader-svg .packet.p2{animation-delay:.53s}
-  .loader-svg .packet.p3{animation-delay:1.06s}
-  @keyframes packetMove{
-    0%{transform:translateX(0); opacity:0}
-    10%{opacity:1}
-    90%{opacity:1}
-    100%{transform:translateX(70px); opacity:0}
-  }
-  .loader-bar{
-    width:220px; height:6px; background:#3a3a3a; border-radius:4px; overflow:hidden;
-    margin-bottom:10px;
-  }
-  .loader-bar-fill{
-    height:100%; width:0%; background:linear-gradient(90deg,#0078D7,#33c3ff);
-    transition:width .1s linear;
-  }
-  .loader-status{font-size:12px; color:var(--sub); min-height:16px}
-
-  /* ---------- Экран 1 ---------- */
-  #screen-start{align-items:center; justify-content:center; text-align:center}
-  #screen-start h1{font-size:20px; margin:0 0 8px}
-  #screen-start p{color:var(--sub); font-size:14px; margin:0 0 28px; max-width:320px}
-
-  /* ---------- Кнопки ---------- */
-  button{
-    font-family:inherit; font-size:16px; border:0; border-radius:10px;
-    color:#fff; background:var(--btn); padding:14px 20px;
-    width:100%; max-width:420px; cursor:pointer;
-    transition:background .15s; flex-shrink:0;
-  }
-  button:active{background:var(--btn-active)}
-  button:disabled{background:var(--btn-disabled); color:#888; cursor:not-allowed}
-
-  /* ---------- Экран 2 ---------- */
-  #screen-select h2{font-size:17px; margin:0 0 16px; text-align:center}
-  .field{margin-bottom:14px; flex-shrink:0}
-  .field label{display:block; font-size:13px; color:var(--sub); margin-bottom:6px}
-  select{
-    width:100%; font-size:16px; color:var(--fg); background:var(--field);
-    border:1px solid var(--border); border-radius:10px; padding:12px;
-    -webkit-appearance:none; appearance:none;
-    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8'><path d='M1 1l5 5 5-5' stroke='%239a9a9a' stroke-width='2' fill='none'/></svg>");
-    background-repeat:no-repeat; background-position:right 14px center;
-  }
-  select:disabled{opacity:.5}
-
-  #action-btn{
-    height:74px; font-size:15px; font-weight:700; line-height:1.25;
-    margin:8px 0 12px;
+  
+  body {
+    height: 100dvh; 
+    display: flex; flex-direction: column;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    overflow: hidden;
   }
 
-  /* ---------- Лог: фиксированная высота ---------- */
-  .log-wrap{
-    display:flex; flex-direction:column;
-    height:160px; min-height:160px; max-height:160px;
-    margin-bottom:12px; flex-shrink:0;
+  /* --- Управление экранами --- */
+  .screen {
+    display: none; 
+    flex: 1; 
+    flex-direction: column;
+    min-height: 0;
+    padding: 20px;
+    width: 100%;
+    max-width: 500px; /* Ограничение для очень больших экранов */
+    margin: 0 auto;   /* Центрирование */
   }
-  .log-wrap .caption{font-size:12px; color:var(--sub); margin-bottom:4px; flex-shrink:0}
-  #log{
-    flex:1 1 auto; min-height:0;
-    background:var(--log-bg); color:var(--log-fg);
-    font-family:ui-monospace,Menlo,Consolas,monospace; font-size:11px;
-    border-radius:8px; padding:8px; overflow-y:auto;
-    white-space:pre; -webkit-overflow-scrolling:touch;
+  .screen.active {
+    display: flex;
   }
 
-  /* ---------- Прогресс ---------- */
-  .progress-wrap{margin-top:auto; flex-shrink:0; padding-bottom:6px}
-  #bar{width:100%; height:10px; background:var(--field); border-radius:6px; overflow:hidden}
-  #bar-fill{height:100%; width:0%; background:var(--btn); transition:width .4s linear}
-  #status{font-size:12px; color:var(--sub); text-align:center; margin-top:8px; min-height:32px}
+  /* ---------- ЭКРАН ЗАГРУЗКИ ---------- */
+  #screen-loader {
+    align-items: center; 
+    justify-content: center; 
+    text-align: center;
+    background: radial-gradient(circle at 50% 40%, #303030 0%, #1a1a1a 100%);
+    max-width: 100%;
+  }
+  #screen-loader .brand {
+    font-size: 14px; letter-spacing: 3px; color: var(--accent);
+    text-transform: uppercase; margin-bottom: 14px; opacity: .9; font-weight: 600;
+  }
+  #screen-loader h1 { 
+    font-size: 24px; margin: 0 0 40px; font-weight: 700; letter-spacing: .5px; 
+  }
+  
+  /* Увеличенная анимация под экран iPhone 15 */
+  .loader-svg { 
+    width: 260px; height: 140px; margin-bottom: 40px; 
+  }
+  .loader-svg .packet { animation: packetMove 1.6s linear infinite; }
+  .loader-svg .packet.p2 { animation-delay: .53s; }
+  .loader-svg .packet.p3 { animation-delay: 1.06s; }
+  @keyframes packetMove {
+    0% { transform: translateX(0); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateX(70px); opacity: 0; }
+  }
+  
+  .loader-bar {
+    width: 260px; height: 8px; background: #333; border-radius: 4px; overflow: hidden; margin-bottom: 16px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+  }
+  .loader-bar-fill {
+    height: 100%; width: 0%; background: linear-gradient(90deg, #0078D7, #33c3ff); transition: width .1s linear;
+  }
+  .loader-status { font-size: 14px; color: var(--sub); min-height: 20px; font-weight: 500; }
+
+  /* ---------- ЭКРАН 1 (ПОДКЛЮЧЕНИЕ) ---------- */
+  #screen-start { 
+    align-items: center; 
+    justify-content: center; 
+    text-align: center; 
+  }
+  #screen-start h1 { 
+    font-size: 24px; margin: 0 0 16px; line-height: 1.3; 
+  }
+  #screen-start p { 
+    color: var(--sub); font-size: 16px; margin: 0 0 48px; max-width: 300px; line-height: 1.5; 
+  }
+
+  /* ---------- ОБЩИЕ КНОПКИ ---------- */
+  button {
+    font-family: inherit; font-size: 17px; font-weight: 600; border: 0; border-radius: 14px;
+    color: #fff; background: var(--btn); padding: 18px 20px;
+    width: 100%; max-width: 340px; cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+    box-shadow: 0 4px 16px rgba(0, 120, 215, 0.3);
+  }
+  button:active { background: var(--btn-active); transform: scale(0.97); }
+  button:disabled { background: var(--btn-disabled); color: #777; cursor: not-allowed; box-shadow: none; transform: none; }
+
+  /* ---------- ЭКРАН 2 (ВЫБОР И ПРОЦЕСС) ---------- */
+  #screen-select h2 { font-size: 20px; margin: 0 0 24px; text-align: center; font-weight: 600; }
+  
+  .field { margin-bottom: 18px; flex-shrink: 0; }
+  .field label { display: block; font-size: 13px; color: var(--sub); margin-bottom: 8px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;}
+  select {
+    width: 100%; font-size: 16px; color: var(--fg); background: var(--field);
+    border: 1px solid var(--border); border-radius: 14px; padding: 16px 16px;
+    -webkit-appearance: none; appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='10'><path d='M1 1l6 6 6-6' stroke='%239a9a9a' stroke-width='2' fill='none'/></svg>");
+    background-repeat: no-repeat; background-position: right 16px center;
+  }
+  select:disabled { opacity: 0.5; }
+  select:focus { outline: none; border-color: var(--btn); }
+
+  #action-btn { height: 80px; font-size: 16px; margin: 10px auto 24px; line-height: 1.3; max-width: 100%; }
+
+  /* --- ЛОГ (ГИБКИЙ) --- */
+  .log-wrap {
+    display: flex; flex-direction: column;
+    flex-grow: 1; 
+    margin-bottom: 24px;
+    min-height: 120px; 
+  }
+  .log-wrap .caption { font-size: 12px; color: var(--sub); margin-bottom: 8px; flex-shrink: 0; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;}
+  #log {
+    flex-grow: 1; 
+    background: var(--log-bg); color: var(--log-fg);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; 
+    font-size: 11px; line-height: 1.6;
+    border-radius: 14px; padding: 14px; overflow-y: auto;
+    border: 1px solid #2a2a2a;
+    white-space: pre-wrap; word-wrap: break-word;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* --- ПРОГРЕСС (ПРИЖАТ К НИЗУ) --- */
+  .progress-wrap {
+    flex-shrink: 0; 
+    margin-top: auto; 
+    padding-bottom: 10px;
+    width: 100%;
+  }
+  #bar { width: 100%; height: 14px; background: var(--field); border-radius: 8px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); }
+  #bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #0078D7, #33c3ff); transition: width 0.3s linear; }
+  #status { font-size: 13px; color: var(--sub); text-align: center; margin-top: 14px; min-height: 38px; line-height: 1.5; font-weight: 500;}
 </style>
 </head>
 <body>
@@ -121,14 +170,14 @@
   <h1>Mobile Data Extractor</h1>
 
   <svg class="loader-svg" viewBox="0 0 220 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="10" y="20" width="42" height="76" rx="8" stroke="#6a6a6a" stroke-width="2"/>
-    <rect x="17" y="30" width="28" height="50" rx="3" fill="#1a1a1a"/>
-    <rect x="24" y="86" width="14" height="3" rx="1.5" fill="#6a6a6a"/>
+    <rect x="10" y="20" width="42" height="76" rx="8" stroke="#555" stroke-width="2"/>
+    <rect x="17" y="30" width="28" height="50" rx="3" fill="#111"/>
+    <rect x="24" y="86" width="14" height="3" rx="1.5" fill="#555"/>
     <rect x="168" y="20" width="42" height="76" rx="8" stroke="#33c3ff" stroke-width="2"/>
     <rect x="175" y="30" width="28" height="50" rx="3" fill="#0e2a33"/>
     <rect x="182" y="86" width="14" height="3" rx="1.5" fill="#33c3ff"/>
-    <line x1="56" y1="58" x2="164" y2="58" stroke="#3d3d3d" stroke-width="2" stroke-dasharray="4 4"/>
-    <polygon points="164,53 172,58 164,63" fill="#3d3d3d"/>
+    <line x1="56" y1="58" x2="164" y2="58" stroke="#333" stroke-width="2" stroke-dasharray="4 4"/>
+    <polygon points="164,53 172,58 164,63" fill="#333"/>
     <circle class="packet p1" cx="66" cy="58" r="4" fill="#33c3ff"/>
     <circle class="packet p2" cx="66" cy="58" r="3" fill="#0090d0"/>
     <circle class="packet p3" cx="66" cy="58" r="3.5" fill="#66d9ff"/>
@@ -138,16 +187,16 @@
   <div class="loader-status" id="loader-status">Инициализация…</div>
 </section>
 
-<!-- ========== ЭКРАН 1 (ТОЛЬКО ОДИН РАЗ!) ========== -->
+<!-- ========== ЭКРАН 1 (ПОДКЛЮЧЕНИЕ) ========== -->
 <section id="screen-start" class="screen">
   <h1>Подключите мобильное устройство</h1>
   <p>Убедитесь, что кабель подключён, и нажмите кнопку ниже</p>
-  <button id="btn-connected">Мобильное устройство подключено</button>
+  <button id="btn-connected">Устройство подключено</button>
 </section>
 
-<!-- ========== ЭКРАН 2 ========== -->
+<!-- ========== ЭКРАН 2 (ВЫБОР И ПРОЦЕСС) ========== -->
 <section id="screen-select" class="screen">
-  <h2>Выберите марку и модель телефона</h2>
+  <h2>Выберите устройство</h2>
 
   <div class="field">
     <label for="brand">Марка</label>
@@ -159,7 +208,7 @@
     <select id="model" disabled><option value="">— сначала выберите марку —</option></select>
   </div>
 
-  <button id="action-btn" disabled>Создать файл-образ всей памяти мобильного устройства</button>
+  <button id="action-btn" disabled>Создать файл-образ памяти<br>мобильного устройства</button>
 
   <div class="log-wrap">
     <div class="caption">Протокол копирования:</div>
@@ -441,7 +490,7 @@ function updateProgress(){
   const m = Math.floor(remainMs / 60000);
   const s = Math.floor((remainMs % 60000) / 1000);
   statusEl.textContent =
-    `Создание образа: ${brandSel.value} ${modelSel.value} | прогресс ${percent.toFixed(1)}% | осталось ${pad2(m)}:${pad2(s)}`;
+    `Создание образа: ${brandSel.value} ${modelSel.value}\nПрогресс: ${percent.toFixed(1)}% | Осталось: ${pad2(m)}:${pad2(s)}`;
 
   if(percent >= 100) finishProcess();
 }
