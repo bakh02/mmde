@@ -19,12 +19,12 @@
   body{
     background:var(--bg); color:var(--fg);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-    display:flex; flex-direction:column; min-height:100vh;
+    display:flex; flex-direction:column; height:100dvh; /* Используем 100dvh для корректной высоты в Safari */
     padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     overflow:hidden;
   }
-  .screen{display:none; flex:1; padding:20px; min-height:0}
-  .screen.active{display:flex; flex-direction:column}
+  .screen{display:none; flex:1; padding:20px; min-height:0; flex-direction:column}
+  .screen.active{display:flex}
 
   /* ---------- Загрузочный экран ---------- */
   #screen-loader{
@@ -68,14 +68,14 @@
     font-family:inherit; font-size:16px; border:0; border-radius:10px;
     color:#fff; background:var(--btn); padding:14px 20px;
     width:100%; max-width:420px; cursor:pointer;
-    transition:background .15s;
+    transition:background .15s; flex-shrink:0;
   }
   button:active{background:var(--btn-active)}
   button:disabled{background:var(--btn-disabled); color:#888; cursor:not-allowed}
 
   /* ---------- Экран 2 ---------- */
   #screen-select h2{font-size:17px; margin:0 0 16px; text-align:center}
-  .field{margin-bottom:14px}
+  .field{margin-bottom:14px; flex-shrink:0}
   .field label{display:block; font-size:13px; color:var(--sub); margin-bottom:6px}
   select{
     width:100%; font-size:16px; color:var(--fg); background:var(--field);
@@ -88,7 +88,7 @@
 
   #action-btn{
     height:74px; font-size:15px; font-weight:700; line-height:1.25;
-    margin:8px 0 12px; flex-shrink:0;
+    margin:8px 0 12px;
   }
 
   /* ---------- Лог: фиксированная высота ---------- */
@@ -121,21 +121,14 @@
   <h1>Mobile Data Extractor</h1>
 
   <svg class="loader-svg" viewBox="0 0 220 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <!-- левый телефон (источник) -->
     <rect x="10" y="20" width="42" height="76" rx="8" stroke="#6a6a6a" stroke-width="2"/>
     <rect x="17" y="30" width="28" height="50" rx="3" fill="#1a1a1a"/>
     <rect x="24" y="86" width="14" height="3" rx="1.5" fill="#6a6a6a"/>
-
-    <!-- правый телефон (приёмник) -->
     <rect x="168" y="20" width="42" height="76" rx="8" stroke="#33c3ff" stroke-width="2"/>
     <rect x="175" y="30" width="28" height="50" rx="3" fill="#0e2a33"/>
     <rect x="182" y="86" width="14" height="3" rx="1.5" fill="#33c3ff"/>
-
-    <!-- стрелка-канал -->
     <line x1="56" y1="58" x2="164" y2="58" stroke="#3d3d3d" stroke-width="2" stroke-dasharray="4 4"/>
     <polygon points="164,53 172,58 164,63" fill="#3d3d3d"/>
-
-    <!-- пакеты данных -->
     <circle class="packet p1" cx="66" cy="58" r="4" fill="#33c3ff"/>
     <circle class="packet p2" cx="66" cy="58" r="3" fill="#0090d0"/>
     <circle class="packet p3" cx="66" cy="58" r="3.5" fill="#66d9ff"/>
@@ -145,7 +138,7 @@
   <div class="loader-status" id="loader-status">Инициализация…</div>
 </section>
 
-<!-- ========== ЭКРАН 1 ========== -->
+<!-- ========== ЭКРАН 1 (ТОЛЬКО ОДИН РАЗ!) ========== -->
 <section id="screen-start" class="screen">
   <h1>Подключите мобильное устройство</h1>
   <p>Убедитесь, что кабель подключён, и нажмите кнопку ниже</p>
@@ -180,17 +173,17 @@
 </section>
 
 <script>
-/* ---------- Загрузочная анимация (~3 с) ---------- */
+/* ---------- Загрузочная анимация (5 с) ---------- */
 (function runLoader(){
   const fill = document.getElementById("loader-fill");
   const statusEl = document.getElementById("loader-status");
   const stages = [
     { at:0,    text:"Инициализация модулей…" },
-    { at:900,  text:"Проверка интерфейсов связи…" },
-    { at:1700, text:"Подготовка каналов передачи…" },
-    { at:2500, text:"Почти готово…" }
+    { at:1500, text:"Проверка интерфейсов связи…" },
+    { at:2800, text:"Подготовка каналов передачи…" },
+    { at:4200, text:"Почти готово…" }
   ];
-  const DURATION = 3000;
+  const DURATION = 5000;
   const start = performance.now();
   let stageIdx = 0;
 
@@ -465,386 +458,6 @@ function finishProcess(){
 }
 
 /* ---------- Защита от закрытия ---------- */
-window.addEventListener("beforeunload", (e)=>{
-  if(isProcessing){
-    e.preventDefault();
-    e.returnValue = "";
-  }
-});
-</script>
-</body>
-</html><!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#2b2b2b">
-<title>Phone Memory Imager (Web Demo)</title>
-<style>
-  :root{
-    --bg:#2b2b2b; --fg:#e0e0e0; --sub:#9a9a9a;
-    --btn:#0078D7; --btn-active:#005A9E; --btn-disabled:#3a3a3a;
-    --field:#1f1f1f; --log-bg:#1a1a1a; --log-fg:#a8e6a1; --border:#3d3d3d;
-  }
-  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;padding:0;height:100%}
-  body{
-    background:var(--bg); color:var(--fg);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-    display:flex; flex-direction:column; min-height:100vh;
-    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-  }
-  .screen{display:none; flex:1; padding:20px}
-  .screen.active{display:flex; flex-direction:column}
-
-  /* Экран 1 */
-  #screen-start{align-items:center; justify-content:center; text-align:center}
-  #screen-start h1{font-size:20px; margin:0 0 8px}
-  #screen-start p{color:var(--sub); font-size:14px; margin:0 0 28px; max-width:320px}
-
-  /* Кнопки */
-  button{
-    font-family:inherit; font-size:16px; border:0; border-radius:10px;
-    color:#fff; background:var(--btn); padding:14px 20px;
-    width:100%; max-width:420px; cursor:pointer;
-    transition:background .15s;
-  }
-  button:active{background:var(--btn-active)}
-  button:disabled{background:var(--btn-disabled); color:#888; cursor:not-allowed}
-
-  /* Экран 2 */
-  #screen-select h2{font-size:17px; margin:0 0 16px; text-align:center}
-  .field{margin-bottom:14px}
-  .field label{display:block; font-size:13px; color:var(--sub); margin-bottom:6px}
-  select{
-    width:100%; font-size:16px; color:var(--fg); background:var(--field);
-    border:1px solid var(--border); border-radius:10px; padding:12px;
-    -webkit-appearance:none; appearance:none;
-    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8'><path d='M1 1l5 5 5-5' stroke='%239a9a9a' stroke-width='2' fill='none'/></svg>");
-    background-repeat:no-repeat; background-position:right 14px center;
-  }
-  select:disabled{opacity:.5}
-
-  #action-btn{
-    height:74px; font-size:15px; font-weight:700; line-height:1.25;
-    margin:8px 0 16px;
-  }
-
-  /* Лог */
-  .log-wrap{flex:1; display:flex; flex-direction:column; min-height:120px}
-  .log-wrap .caption{font-size:12px; color:var(--sub); margin-bottom:4px}
-  #log{
-    flex:1; background:var(--log-bg); color:var(--log-fg);
-    font-family:ui-monospace,Menlo,Consolas,monospace; font-size:11px;
-    border-radius:8px; padding:8px; overflow-y:auto;
-    white-space:pre; -webkit-overflow-scrolling:touch;
-    min-height:110px;
-  }
-
-  /* Прогресс */
-  .progress-wrap{margin-top:12px}
-  #bar{width:100%; height:10px; background:var(--field); border-radius:6px; overflow:hidden}
-  #bar-fill{height:100%; width:0%; background:var(--btn); transition:width .4s linear}
-  #status{font-size:12px; color:var(--sub); text-align:center; margin-top:8px; min-height:32px}
-</style>
-</head>
-<body>
-
-<!-- Экран 1 -->
-<section id="screen-start" class="screen active">
-  <h1>Подключите мобильное устройство</h1>
-  <p>Убедитесь, что кабель подключён, и нажмите кнопку ниже</p>
-  <button id="btn-connected">Мобильное устройство подключено</button>
-</section>
-
-<!-- Экран 2 -->
-<section id="screen-select" class="screen">
-  <h2>Выберите марку и модель телефона</h2>
-
-  <div class="field">
-    <label for="brand">Марка</label>
-    <select id="brand"><option value="">— выберите —</option></select>
-  </div>
-
-  <div class="field">
-    <label for="model">Модель</label>
-    <select id="model" disabled><option value="">— сначала выберите марку —</option></select>
-  </div>
-
-  <button id="action-btn" disabled>Создать файл-образ всей памяти мобильного устройства</button>
-
-  <div class="log-wrap">
-    <div class="caption">Протокол копирования:</div>
-    <div id="log"></div>
-  </div>
-
-  <div class="progress-wrap">
-    <div id="bar"><div id="bar-fill"></div></div>
-    <div id="status">Ожидание выбора модели…</div>
-  </div>
-</section>
-
-<script>
-/* ---------- Справочник моделей ---------- */
-const PHONE_DB = {
-  "Apple": [
-    "iPhone 16 Pro Max","iPhone 16 Pro","iPhone 16 Plus","iPhone 16","iPhone 16e",
-    "iPhone 15 Pro Max","iPhone 15 Pro","iPhone 15 Plus","iPhone 15",
-    "iPhone 14 Pro Max","iPhone 14 Pro","iPhone 14 Plus","iPhone 14",
-    "iPhone 13 Pro Max","iPhone 13 Pro","iPhone 13","iPhone 13 mini",
-    "iPhone SE (3-го поколения)","iPhone 12 Pro Max","iPhone 12 Pro","iPhone 12","iPhone 12 mini",
-    "iPhone SE (2-го поколения)","iPhone 11 Pro Max","iPhone 11 Pro","iPhone 11",
-    "iPhone XS Max","iPhone XS","iPhone XR","iPhone X",
-    "iPhone 8 Plus","iPhone 8","iPhone 7 Plus","iPhone 7",
-    "iPhone SE (1-го поколения)","iPhone 6s Plus","iPhone 6s","iPhone 6 Plus","iPhone 6"
-  ],
-  "Samsung": [
-    "Galaxy S25 Ultra","Galaxy S25+","Galaxy S25",
-    "Galaxy S24 Ultra","Galaxy S24+","Galaxy S24",
-    "Galaxy S23 Ultra","Galaxy S23+","Galaxy S23",
-    "Galaxy S22 Ultra","Galaxy S22+","Galaxy S22",
-    "Galaxy S21 Ultra","Galaxy S21+","Galaxy S21",
-    "Galaxy S20 Ultra","Galaxy S20+","Galaxy S20",
-    "Galaxy Note 20 Ultra","Galaxy Note 20","Galaxy Note 10+","Galaxy Note 10",
-    "Galaxy Z Fold 7","Galaxy Z Fold 6","Galaxy Z Fold 5","Galaxy Z Fold 4","Galaxy Z Fold 3",
-    "Galaxy Z Flip 7","Galaxy Z Flip 6","Galaxy Z Flip 5","Galaxy Z Flip 4","Galaxy Z Flip 3",
-    "Galaxy A56","Galaxy A55","Galaxy A54","Galaxy A36","Galaxy A35","Galaxy A34",
-    "Galaxy A26","Galaxy A25","Galaxy A16","Galaxy A15"
-  ],
-  "Xiaomi": [
-    "Xiaomi 15 Ultra","Xiaomi 15 Pro","Xiaomi 15","Xiaomi 15T Pro","Xiaomi 15T",
-    "Xiaomi 14 Ultra","Xiaomi 14 Pro","Xiaomi 14","Xiaomi 14T Pro","Xiaomi 14T",
-    "Xiaomi 13 Ultra","Xiaomi 13 Pro","Xiaomi 13","Xiaomi 13T Pro","Xiaomi 13T",
-    "Xiaomi 12 Pro","Xiaomi 12","Xiaomi 12T Pro","Xiaomi 12T",
-    "Redmi Note 14 Pro+","Redmi Note 14 Pro","Redmi Note 14",
-    "Redmi Note 13 Pro+","Redmi Note 13 Pro","Redmi Note 13",
-    "Redmi Note 12 Pro","Redmi Note 12","Redmi Note 11 Pro","Redmi Note 11",
-    "Redmi K80 Pro","Redmi K80","Redmi K70 Pro","Redmi K70","Redmi K60 Pro","Redmi K60",
-    "POCO X7 Pro","POCO X7","POCO X6 Pro","POCO X6","POCO F6 Pro","POCO F6","POCO F5"
-  ],
-  "Huawei": [
-    "Mate 70 Pro+","Mate 70 Pro","Mate 70","Mate 60 Pro+","Mate 60 Pro","Mate 60",
-    "Mate 50 Pro","Mate 50","Mate 40 Pro+","Mate 40 Pro","Mate 40",
-    "Mate 30 Pro","Mate 30","Mate 20 Pro","Mate 20","Mate 10 Pro","Mate 10",
-    "Pura 70 Ultra","Pura 70 Pro+","Pura 70 Pro","Pura 70",
-    "P60 Pro","P60","P50 Pro","P50","P40 Pro+","P40 Pro","P40",
-    "P30 Pro","P30","P20 Pro","P20",
-    "nova 13 Pro","nova 13","nova 12 Pro","nova 12","nova 11 Pro","nova 11",
-    "nova 10 Pro","nova 10","nova 9 Pro","nova 9"
-  ]
-};
-
-/* ---------- Пути и имена файлов ---------- */
-const IOS_DIRS = [
-  "/private/var/mobile/Media/DCIM/100APPLE/",
-  "/private/var/mobile/Media/DCIM/101APPLE/",
-  "/private/var/mobile/Media/PhotoData/CPLAssets/",
-  "/private/var/mobile/Media/Recordings/",
-  "/private/var/mobile/Library/SMS/Attachments/",
-  "/private/var/mobile/Containers/Data/Application/WhatsApp/Documents/",
-  "/private/var/mobile/Containers/Data/Application/Telegram/Documents/",
-  "/private/var/mobile/Library/Calendar/",
-  "/private/var/mobile/Library/Notes/",
-  "/private/var/mobile/Library/Voicemail/"
-];
-const ANDROID_DIRS = [
-  "/storage/emulated/0/DCIM/Camera/",
-  "/storage/emulated/0/Pictures/Screenshots/",
-  "/storage/emulated/0/Download/",
-  "/storage/emulated/0/WhatsApp/Media/WhatsApp Images/",
-  "/storage/emulated/0/Telegram/Telegram Images/",
-  "/storage/emulated/0/Music/",
-  "/storage/emulated/0/Movies/",
-  "/data/data/com.android.providers.contacts/databases/",
-  "/data/data/com.android.providers.telephony/databases/",
-  "/data/misc/keystore/"
-];
-const IOS_EXTS = [".HEIC",".MOV",".JPG",".PNG",".MP4",".plist",".db",".sqlite",".txt",".pdf"];
-const ANDROID_EXTS = [".jpg",".mp4",".png",".db",".sqlite",".xml",".json",".apk",".pdf",".webm"];
-const ACTIONS = ["чтение","копирование","хэширование","запись в образ"];
-
-const rnd = (a,b)=>Math.floor(Math.random()*(b-a+1))+a;
-const pick = arr => arr[Math.floor(Math.random()*arr.length)];
-
-function randomFilename(brand){
-  const isApple = brand === "Apple";
-  const base = isApple
-    ? pick(["IMG","VID","PXL","RPReplay","VNote","Screenshot"])
-    : pick(["IMG","VID","Screenshot","photo","video","doc"]);
-  const num = isApple ? String(rnd(1,9999)).padStart(4,"0")
-                      : String(rnd(1,99999)).padStart(5,"0");
-  return base + "_" + num + pick(isApple?IOS_EXTS:ANDROID_EXTS);
-}
-function randomPath(brand){
-  const dir = brand === "Apple" ? pick(IOS_DIRS) : pick(ANDROID_DIRS);
-  return dir + randomFilename(brand);
-}
-function humanSize(){
-  const kb = rnd(12,8000);
-  return kb < 1024 ? kb+" KB" : (kb/1024).toFixed(1)+" MB";
-}
-function pad2(n){ return String(n).padStart(2,"0"); }
-
-/* ---------- DOM ---------- */
-const $ = id => document.getElementById(id);
-const screenStart = $("screen-start");
-const screenSelect = $("screen-select");
-const brandSel = $("brand");
-const modelSel = $("model");
-const actionBtn = $("action-btn");
-const logEl = $("log");
-const barFill = $("bar-fill");
-const statusEl = $("status");
-
-/* ---------- Состояние ---------- */
-let isProcessing = false;
-let totalMs = 0;
-let startTs = 0;
-let progressTimer = null;
-let logTimer = null;
-let wakeLock = null;
-const LOG_MAX_LINES = 200;
-
-/* ---------- Инициализация списка брендов ---------- */
-Object.keys(PHONE_DB).forEach(b=>{
-  const o = document.createElement("option");
-  o.value = b; o.textContent = b;
-  brandSel.appendChild(o);
-});
-
-/* ---------- Обработчики ---------- */
-$("btn-connected").addEventListener("click", ()=>{
-  screenStart.classList.remove("active");
-  screenSelect.classList.add("active");
-});
-
-brandSel.addEventListener("change", ()=>{
-  const brand = brandSel.value;
-  modelSel.innerHTML = "";
-  if(!brand){
-    modelSel.disabled = true;
-    modelSel.innerHTML = '<option value="">— сначала выберите марку —</option>';
-    resetActionBtn();
-    return;
-  }
-  modelSel.disabled = false;
-  modelSel.innerHTML = '<option value="">— выберите модель —</option>';
-  PHONE_DB[brand].forEach(m=>{
-    const o = document.createElement("option");
-    o.value = m; o.textContent = m;
-    modelSel.appendChild(o);
-  });
-  resetActionBtn();
-  statusEl.textContent = "Выберите модель из списка.";
-});
-
-modelSel.addEventListener("change", ()=>{
-  if(modelSel.value){
-    actionBtn.disabled = false;
-    statusEl.textContent = `Готово к созданию образа: ${brandSel.value} ${modelSel.value}`;
-  } else {
-    resetActionBtn();
-  }
-});
-
-function resetActionBtn(){
-  actionBtn.disabled = true;
-  statusEl.textContent = "Ожидание выбора модели…";
-}
-
-actionBtn.addEventListener("click", startProcess);
-
-/* ---------- Лог ---------- */
-function appendLog(line){
-  const atBottom = logEl.scrollTop + logEl.clientHeight >= logEl.scrollHeight - 8;
-  logEl.textContent += line + "\n";
-  // ограничение количества строк
-  const lines = logEl.textContent.split("\n");
-  if(lines.length > LOG_MAX_LINES){
-    logEl.textContent = lines.slice(lines.length - LOG_MAX_LINES).join("\n");
-  }
-  if(atBottom) logEl.scrollTop = logEl.scrollHeight;
-}
-
-/* ---------- Процесс ---------- */
-async function requestWakeLock(){
-  try{
-    if("wakeLock" in navigator){
-      wakeLock = await navigator.wakeLock.request("screen");
-    }
-  }catch(e){ /* не критично */ }
-}
-function releaseWakeLock(){
-  if(wakeLock){ try{ wakeLock.release(); }catch(e){} wakeLock = null; }
-}
-
-function startProcess(){
-  if(isProcessing) return;
-  if(!brandSel.value || !modelSel.value) return;
-
-  isProcessing = true;
-  actionBtn.disabled = true;
-  logEl.textContent = "";
-  barFill.style.width = "0%";
-
-  // Случайное время 25–35 минут
-  const minutes = rnd(25, 35);
-  totalMs = minutes * 60 * 1000;
-  startTs = Date.now();
-
-  appendLog(`[INIT] Начало создания образа: ${brandSel.value} ${modelSel.value}`);
-  appendLog(`[INIT] Оценочное время: ~${minutes} мин.`);
-
-  statusEl.textContent = `Создание образа… прогресс 0.0%`;
-  requestWakeLock();
-
-  // Прогресс
-  progressTimer = setInterval(updateProgress, 500);
-  // Лента файлов
-  scheduleLogTick();
-}
-
-function scheduleLogTick(){
-  if(!isProcessing) return;
-  const brand = brandSel.value;
-  const n = rnd(1,3);
-  for(let i=0;i<n;i++){
-    const action = pick(ACTIONS).padStart(11," ");
-    const size = humanSize().padStart(9," ");
-    appendLog(`[${action}] ${size}  ${randomPath(brand)}`);
-  }
-  logTimer = setTimeout(scheduleLogTick, rnd(100,250));
-}
-
-function updateProgress(){
-  if(!isProcessing) return;
-  const elapsed = Date.now() - startTs;
-  const percent = Math.min(elapsed / totalMs * 100, 100);
-  barFill.style.width = percent.toFixed(1) + "%";
-
-  const remainMs = Math.max(totalMs - elapsed, 0);
-  const m = Math.floor(remainMs / 60000);
-  const s = Math.floor((remainMs % 60000) / 1000);
-  statusEl.textContent =
-    `Создание образа: ${brandSel.value} ${modelSel.value} | прогресс ${percent.toFixed(1)}% | осталось ${pad2(m)}:${pad2(s)}`;
-
-  if(percent >= 100) finishProcess();
-}
-
-function finishProcess(){
-  isProcessing = false;
-  clearInterval(progressTimer); progressTimer = null;
-  clearTimeout(logTimer); logTimer = null;
-  barFill.style.width = "100%";
-  appendLog("[ DONE  ] Образ успешно создан (симуляция).");
-  statusEl.textContent = "Процесс завершен. Файл-образ создан.";
-  actionBtn.disabled = false;
-  releaseWakeLock();
-}
-
-/* ---------- Защита от закрытия во время процесса ---------- */
 window.addEventListener("beforeunload", (e)=>{
   if(isProcessing){
     e.preventDefault();
