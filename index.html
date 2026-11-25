@@ -55,11 +55,16 @@
   }
 
   /* ---------- ЭКРАН ЗАГРУЗКИ ---------- */
+  /* Переносим градиент на body через псевдокласс, чтобы он был на весь экран */
+  body.loading-bg {
+    background: radial-gradient(circle at 50% 40%, #303030 0%, #1a1a1a 100%);
+  }
+
   #screen-loader {
     align-items: center; 
     justify-content: center; 
     text-align: center;
-    background: radial-gradient(circle at 50% 40%, #303030 0%, #1a1a1a 100%);
+    background: transparent; /* Убираем фон с самого блока */
     max-width: 100%;
   }
   #screen-loader .brand {
@@ -110,12 +115,12 @@
     display: none; /* Скрыта по умолчанию */
     background: var(--btn-cancel);
     box-shadow: 0 4px 16px rgba(211, 47, 47, 0.3);
-    margin-top: 10px;
+    margin-top: 12px;
   }
   #cancel-btn:active { background: var(--btn-cancel-active); }
 
   /* ---------- ЭКРАН 2 (ВЫБОР И ПРОЦЕСС) ---------- */
-  #screen-select h2 { font-size: 20px; margin: 0 0 24px; text-align: center; font-weight: 600; }
+  #screen-select h2 { font-size: 20px; margin: 0 0 24px; text-align: center; font-weight: 600; flex-shrink: 0; }
   
   .field { margin-bottom: 18px; flex-shrink: 0; }
   .field label { display: block; font-size: 13px; color: var(--sub); margin-bottom: 8px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;}
@@ -134,8 +139,8 @@
   /* --- ЛОГ --- */
   .log-wrap {
     display: flex; flex-direction: column;
-    flex-grow: 1; 
-    margin-bottom: 24px;
+    flex-grow: 1; /* Заставляет лог занять всё свободное место */
+    margin-bottom: 16px;
     min-height: 100px; 
   }
   .log-wrap .caption { font-size: 12px; color: var(--sub); margin-bottom: 8px; flex-shrink: 0; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;}
@@ -150,11 +155,10 @@
     -webkit-overflow-scrolling: touch;
   }
 
-  /* --- ПРОГРЕСС И НИЗ --- */
+  /* --- ПРОГРЕСС И НИЗ (ПРИЖАТЫ К САМОМУ НИЗУ) --- */
   .progress-wrap {
     flex-shrink: 0; 
-    margin-top: auto; 
-    padding-bottom: 10px;
+    margin-top: auto; /* Прижимает блок в самый низ */
     width: 100%;
   }
   #bar { width: 100%; height: 14px; background: var(--field); border-radius: 8px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); }
@@ -162,7 +166,7 @@
   #status { font-size: 13px; color: var(--sub); text-align: center; margin-top: 14px; min-height: 38px; line-height: 1.5; font-weight: 500;}
 </style>
 </head>
-<body>
+<body class="loading-bg">
 
 <!-- ========== ЭКРАН ЗАГРУЗКИ ========== -->
 <section id="screen-loader" class="screen active">
@@ -215,10 +219,10 @@
     <div id="log"></div>
   </div>
 
+  <!-- Блок прижат к низу экрана -->
   <div class="progress-wrap">
     <div id="bar"><div id="bar-fill"></div></div>
     <div id="status">Ожидание выбора модели…</div>
-    <!-- Кнопка отмены (скрыта по умолчанию) -->
     <button id="cancel-btn">Отмена</button>
   </div>
 </section>
@@ -250,6 +254,8 @@
     } else {
       document.getElementById("screen-loader").classList.remove("active");
       document.getElementById("screen-start").classList.add("active");
+      // Убираем градиент с фона, когда загрузка завершена
+      document.body.classList.remove("loading-bg");
     }
   }
   requestAnimationFrame(tick);
