@@ -20,6 +20,8 @@
     --log-fg:#4ade80; 
     --border:#3d3d3d;
     --accent:#33c3ff;
+    --btn-cancel: #d32f2f;
+    --btn-cancel-active: #b71c1c;
   }
   
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -45,8 +47,8 @@
     min-height: 0;
     padding: 20px;
     width: 100%;
-    max-width: 500px; /* Ограничение для очень больших экранов */
-    margin: 0 auto;   /* Центрирование */
+    max-width: 500px; 
+    margin: 0 auto;   
   }
   .screen.active {
     display: flex;
@@ -68,10 +70,7 @@
     font-size: 24px; margin: 0 0 40px; font-weight: 700; letter-spacing: .5px; 
   }
   
-  /* Увеличенная анимация под экран iPhone 15 */
-  .loader-svg { 
-    width: 260px; height: 140px; margin-bottom: 40px; 
-  }
+  .loader-svg { width: 260px; height: 140px; margin-bottom: 40px; }
   .loader-svg .packet { animation: packetMove 1.6s linear infinite; }
   .loader-svg .packet.p2 { animation-delay: .53s; }
   .loader-svg .packet.p3 { animation-delay: 1.06s; }
@@ -92,27 +91,28 @@
   .loader-status { font-size: 14px; color: var(--sub); min-height: 20px; font-weight: 500; }
 
   /* ---------- ЭКРАН 1 (ПОДКЛЮЧЕНИЕ) ---------- */
-  #screen-start { 
-    align-items: center; 
-    justify-content: center; 
-    text-align: center; 
-  }
-  #screen-start h1 { 
-    font-size: 24px; margin: 0 0 16px; line-height: 1.3; 
-  }
-  #screen-start p { 
-    color: var(--sub); font-size: 16px; margin: 0 0 48px; max-width: 300px; line-height: 1.5; 
-  }
+  #screen-start { align-items: center; justify-content: center; text-align: center; }
+  #screen-start h1 { font-size: 24px; margin: 0 0 16px; line-height: 1.3; }
+  #screen-start p { color: var(--sub); font-size: 16px; margin: 0 0 48px; max-width: 300px; line-height: 1.5; }
 
   /* ---------- ОБЩИЕ КНОПКИ ---------- */
   button {
     font-family: inherit; font-size: 17px; font-weight: 600; border: 0; border-radius: 14px;
     color: #fff; background: var(--btn); padding: 18px 20px;
-    width: 100%; max-width: 340px; cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+    width: 100%; cursor: pointer; transition: all 0.2s; flex-shrink: 0;
     box-shadow: 0 4px 16px rgba(0, 120, 215, 0.3);
   }
   button:active { background: var(--btn-active); transform: scale(0.97); }
   button:disabled { background: var(--btn-disabled); color: #777; cursor: not-allowed; box-shadow: none; transform: none; }
+
+  /* Спец. кнопка отмены */
+  #cancel-btn {
+    display: none; /* Скрыта по умолчанию */
+    background: var(--btn-cancel);
+    box-shadow: 0 4px 16px rgba(211, 47, 47, 0.3);
+    margin-top: 10px;
+  }
+  #cancel-btn:active { background: var(--btn-cancel-active); }
 
   /* ---------- ЭКРАН 2 (ВЫБОР И ПРОЦЕСС) ---------- */
   #screen-select h2 { font-size: 20px; margin: 0 0 24px; text-align: center; font-weight: 600; }
@@ -129,14 +129,14 @@
   select:disabled { opacity: 0.5; }
   select:focus { outline: none; border-color: var(--btn); }
 
-  #action-btn { height: 80px; font-size: 16px; margin: 10px auto 24px; line-height: 1.3; max-width: 100%; }
+  #action-btn { height: 76px; font-size: 16px; margin: 10px 0 24px; line-height: 1.3; }
 
-  /* --- ЛОГ (ГИБКИЙ) --- */
+  /* --- ЛОГ --- */
   .log-wrap {
     display: flex; flex-direction: column;
     flex-grow: 1; 
     margin-bottom: 24px;
-    min-height: 120px; 
+    min-height: 100px; 
   }
   .log-wrap .caption { font-size: 12px; color: var(--sub); margin-bottom: 8px; flex-shrink: 0; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;}
   #log {
@@ -150,7 +150,7 @@
     -webkit-overflow-scrolling: touch;
   }
 
-  /* --- ПРОГРЕСС (ПРИЖАТ К НИЗУ) --- */
+  /* --- ПРОГРЕСС И НИЗ --- */
   .progress-wrap {
     flex-shrink: 0; 
     margin-top: auto; 
@@ -218,11 +218,13 @@
   <div class="progress-wrap">
     <div id="bar"><div id="bar-fill"></div></div>
     <div id="status">Ожидание выбора модели…</div>
+    <!-- Кнопка отмены (скрыта по умолчанию) -->
+    <button id="cancel-btn">Отмена</button>
   </div>
 </section>
 
 <script>
-/* ---------- Загрузочная анимация (5 с) ---------- */
+/* ---------- Загрузочная анимация ---------- */
 (function runLoader(){
   const fill = document.getElementById("loader-fill");
   const statusEl = document.getElementById("loader-status");
@@ -360,6 +362,7 @@ const screenSelect = $("screen-select");
 const brandSel = $("brand");
 const modelSel = $("model");
 const actionBtn = $("action-btn");
+const cancelBtn = $("cancel-btn");
 const logEl = $("log");
 const barFill = $("bar-fill");
 const statusEl = $("status");
@@ -422,6 +425,14 @@ function resetActionBtn(){
 
 actionBtn.addEventListener("click", startProcess);
 
+// Обработчик кнопки Отмена
+cancelBtn.addEventListener("click", () => {
+  const msg = "Вы действительно хотите отменить процедуру копирования? Все скопированные данные будут БЕЗВОЗВРАТНО удалены.";
+  if (confirm(msg)) {
+    abortProcess();
+  }
+});
+
 /* ---------- Лог ---------- */
 function appendLog(line){
   const atBottom = logEl.scrollTop + logEl.clientHeight >= logEl.scrollHeight - 8;
@@ -451,6 +462,10 @@ function startProcess(){
 
   isProcessing = true;
   actionBtn.disabled = true;
+  
+  // Показываем кнопку отмены
+  cancelBtn.style.display = "block";
+
   logEl.textContent = "";
   barFill.style.width = "0%";
 
@@ -502,6 +517,26 @@ function finishProcess(){
   barFill.style.width = "100%";
   appendLog("[ DONE  ] Образ успешно создан (симуляция).");
   statusEl.textContent = "Процесс завершен. Файл-образ создан.";
+  
+  // Прячем кнопку отмены
+  cancelBtn.style.display = "none";
+  
+  actionBtn.disabled = false;
+  releaseWakeLock();
+}
+
+function abortProcess(){
+  isProcessing = false;
+  clearInterval(progressTimer); progressTimer = null;
+  clearTimeout(logTimer); logTimer = null;
+  barFill.style.width = "0%";
+  appendLog("[ ОТМЕНА ] Процесс прерван пользователем.");
+  appendLog("[ ОЧИСТКА ] Все временные данные удалены.");
+  statusEl.textContent = "Копирование отменено. Данные удалены.";
+  
+  // Прячем кнопку отмены
+  cancelBtn.style.display = "none";
+  
   actionBtn.disabled = false;
   releaseWakeLock();
 }
